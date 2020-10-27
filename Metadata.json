@@ -1,0 +1,20 @@
+{
+    "Author": "Azure Automation Product Team",
+    "ContentSize": 4667,
+    "ContentUrl": "https://raw.githubusercontent.com/azureautomation/update-management-run-script-locally/master/UpdateManagement-HybridWorker.ps1",
+    "DownloadCount": 3624,
+    "Id": "Update-Management-Run-6949cc44",
+    "IsFederated": true,
+    "IsWorkflow": false,
+    "Popularity": 27,
+    "RaterCount": 1,
+    "Rating": 5.0,
+    "ReleaseDate": "2018-9-18T00:00:00",
+    "RunbookKind": 5,
+    "RunbookKindString": "PowerShell",
+    "Summary": "This script is intended to be run as a part of Update Management Pre/Post scripts.\u00a0This script will run an Azure Automation runbook via a hybrid worker, allowing for local execution of a script.\u00a0It requires a RunAs account and a hybrid worker configured on the machine.",
+    "Title": "Update Management - Run Script Locally",
+    "UpdatedDate": "2018-9-22T00:00:00",
+    "Url": "https://github.com/azureautomation/update-management-run-script-locally",
+    "UserTags": "Patching"
+}
