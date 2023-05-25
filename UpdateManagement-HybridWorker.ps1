@@ -1,7 +1,7 @@
-
+﻿
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.1
 
 .GUID b5eb0470-89af-4302-8200-144d19c454a8
 
@@ -69,16 +69,9 @@ param(
     [string]$SoftwareUpdateConfigurationRunContext
 )
 #region BoilerplateAuthentication
-#This requires a RunAs account
-$ServicePrincipalConnection = Get-AutomationConnection -Name 'AzureRunAsConnection'
-
-Add-AzureRmAccount `
-    -ServicePrincipal `
-    -TenantId $ServicePrincipalConnection.TenantId `
-    -ApplicationId $ServicePrincipalConnection.ApplicationId `
-    -CertificateThumbprint $ServicePrincipalConnection.CertificateThumbprint
-
-$AzureContext = Select-AzureRmSubscription -SubscriptionId $ServicePrincipalConnection.SubscriptionID
+#This requires a System Managed Identity
+$AzureContext = (Connect-AzAccount -Identity).context
+$AzureContext = Set-AzContext -SubscriptionName $AzureContext.Subscription -DefaultProfile $AzureContext
 #endregion BoilerplateAuthentication
 
 $runStatus = New-Object System.Collections.Generic.List[System.Object]
@@ -91,11 +84,11 @@ $context = ConvertFrom-Json  $SoftwareUpdateConfigurationRunContext
 # In order to prevent asking for an Automation Account name and the resource group of that AA,
 # search through all the automation accounts in the subscription 
 # to find the one with a job which matches our job ID
-$AutomationResource = Get-AzureRmResource -ResourceType Microsoft.Automation/AutomationAccounts
+$AutomationResource = Get-AzResource -ResourceType Microsoft.Automation/AutomationAccounts
 
 foreach ($Automation in $AutomationResource)
 {
-    $Job = Get-AzureRmAutomationJob -ResourceGroupName $Automation.ResourceGroupName -AutomationAccountName $Automation.Name -Id $PSPrivateMetadata.JobId.Guid -ErrorAction SilentlyContinue
+    $Job = Get-AzAutomationJob -ResourceGroupName $Automation.ResourceGroupName -AutomationAccountName $Automation.Name -Id $PSPrivateMetadata.JobId.Guid -ErrorAction SilentlyContinue
     if (!([string]::IsNullOrEmpty($Job)))
     {
         $ResourceGroup = $Job.ResourceGroupName
@@ -107,7 +100,7 @@ foreach ($Automation in $AutomationResource)
 #Start script on each machine
 foreach($machine in $HybridWorkerGroups)
 {
-    $output = Start-AzureRmAutomationRunbook -Name $RunbookName -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount -RunOn $machine
+    $output = Start-AzAutomationRunbook -Name $RunbookName -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount -RunOn $machine
     $runStatus.Add($output)
 }
 
@@ -116,14 +109,14 @@ foreach($machine in $HybridWorkerGroups)
 foreach($job in $runStatus)
 {
     #First, wait for each job to complete
-    $currentStatus = Get-AzureRmAutomationJob -Id $job.jobid -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount
+    $currentStatus = Get-AzAutomationJob -Id $job.jobid -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount
     while ($currentStatus.status -ne "Completed")
         {
             Start-Sleep -Seconds 5
-            $currentStatus = Get-AzureRmAutomationJob -Id $job.jobid -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount
+            $currentStatus = Get-AzAutomationJob -Id $job.jobid -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount
         }
     #Then, store the summary
-    $summary = Get-AzureRmAutomationJobOutput -Id $job.jobid -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount
+    $summary = Get-AzAutomationJobOutput -Id $job.jobid -ResourceGroupName $ResourceGroup  -AutomationAccountName $AutomationAccount
     $finalStatus.Add($summary)
 }
 
