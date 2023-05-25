@@ -8,9 +8,7 @@ This script will run an Azure Automation runbook via a hybrid worker, allowing f
 
 It requires [a hybrid worker](https://docs.microsoft.com/en-us/azure/automation/automation-windows-hrw-install#automated-deployment ) configured on the machine.
 
-UpdateManagement-HybridWorker.ps1 requires a RunAs account.
-
-AzUpdateManagement-HybridWorker.ps1 uses Az cmdlets and System Managed Identity.
+UpdateManagement-HybridWorker.ps1 uses Az cmdlets and System Managed Identity.
 
 Due to a known issue in pre/post deployment scripts where objects and arrays are not able to be passed as parameters, this script can only execute against a single hybrid worker group. You can modify
  the script if you have a well-known list of hybrid workers you wish to execute against per deployment. 
